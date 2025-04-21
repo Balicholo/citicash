@@ -26,11 +26,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        {isClient && (
-          <div>
-            <p>Window width: {windowWidth}px</p>
-          </div>
-        )}
       </body>
     </html>
   );
