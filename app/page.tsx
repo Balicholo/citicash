@@ -6,7 +6,7 @@ export default function Home() {
     <main className="container mx-auto py-10 px-4">
       <Card className="max-w-5xl mx-auto">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl md:text-3xl">AUTHENTIC Financial Services</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl">Authentic Financial Services</CardTitle>
           <CardDescription>Loan Application Form</CardDescription>
         </CardHeader>
         <CardContent>
