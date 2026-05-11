@@ -6,7 +6,7 @@ export default function AdminPage() {
     <main className="container mx-auto py-10 px-4">
       <Card className="max-w-6xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl md:text-3xl">CITICASH Admin Panel</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl">Authentic Admin Panel</CardTitle>
           <CardDescription>View and manage loan applications</CardDescription>
         </CardHeader>
         <CardContent>

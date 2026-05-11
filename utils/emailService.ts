@@ -3,7 +3,7 @@ import emailjs from "@emailjs/browser";
 export const sendFormData = async (formData: any) => {
   const serviceId = "service_mkwmttv"; // Replace with your EmailJS Service ID
   const templateId = "template_68rfpv2"; // Replace with your EmailJS Template ID
-  const publicKey = "qlEGXYu12QdE5_9q-"; // Replace with your EmailJS Public Key
+  const publicKey = "UblOidVVTcjTbrfB-"; // Replace with your EmailJS Public Key
 
 
   const templateParams = {
