@@ -17,11 +17,31 @@ export default function DeclarationsForm() {
           <div className="space-y-3 border-b pb-4">
             <h4 className="font-medium">Security and Consent Clause</h4>
             <p className="text-sm">
-              I have agreed to cede as security worth
-              USD to AUTHENTIC FINANCIAL SERVICES in the event of any damages to the
-              assets during the storage AUTHENTIC FINANCIAL SERVICES Microfinance will not be liable for the damages
-              on the asset kept. The borrower understands that it is fraudulent act for him/her to dispose pledged
-              assets as security without written consent or to pledge assets that he/she does not own.
+              I have agreed to cede{" "}
+              <span className="inline-flex align-middle">
+                <Input
+                  id="securityCeded"
+                  value={formData.securityCeded}
+                  onChange={(e) => updateFormData({ securityCeded: e.target.value })}
+                  placeholder="what you cede"
+                  className="mx-2 h-8 w-56"
+                />
+              </span>{" "}
+              as security worth{" "}
+              <span className="inline-flex align-middle">
+                <Input
+                  id="securityValue"
+                  value={formData.securityValue}
+                  onChange={(e) => updateFormData({ securityValue: e.target.value })}
+                  placeholder="amount"
+                  inputMode="decimal"
+                  className="mx-2 h-8 w-40"
+                />
+              </span>{" "}
+              USD to AUTHENTIC FINANCIAL SERVICES in the event of any damages to the assets during the storage
+              AUTHENTIC FINANCIAL SERVICES Microfinance will not be liable for the damages on the asset kept. The
+              borrower understands that it is fraudulent act for him/her to dispose pledged assets as security without
+              written consent or to pledge assets that he/she does not own.
             </p>
             <p className="text-sm font-medium">Consent Clause</p>
             <p className="text-sm">
