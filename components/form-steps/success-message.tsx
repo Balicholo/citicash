@@ -17,7 +17,7 @@ export default function SuccessMessage() {
         </div>
         <CardTitle className="text-2xl">Application Submitted</CardTitle>
         <CardDescription>
-          Your loan application has been successfully submitted to CITICASH Financial Services.
+          Your loan application has been successfully submitted to Authentic Financial Services.
         </CardDescription>
       </CardHeader>
       <CardContent className="text-center">

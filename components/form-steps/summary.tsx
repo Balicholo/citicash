@@ -5,37 +5,32 @@ import { useFormContext } from "@/context/form-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
-import { sendFormData } from "@/utils/emailService"
 
 type SummaryFormProps = {
-  onSubmit: () => Promise<void>
-  isSubmitting: boolean
+  onSubmit: () => void
 }
 
-export default function SummaryForm({ onSubmit, isSubmitting }: SummaryFormProps) {
-  const { formData } = useFormContext()
-  const [isLoading, setIsLoading] = useState(false)
+export default function SummaryForm({ onSubmit }: SummaryFormProps) {
+  const { formData, submitForm, isSubmitting, submitError, clearSubmitError } = useFormContext()
   const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    clearSubmitError()
+
     try {
-      await sendFormData(formData) // Send form data using EmailJS
-      setIsSuccess(true) // Show success popup
-      setTimeout(() => setIsSuccess(false), 3000) // Hide success popup after 3 seconds
-    } catch (error) {
-      console.error("Failed to submit application:", error)
-      alert("An error occurred while submitting the application. Please try again.")
-    } finally {
-      setIsLoading(false)
+      await submitForm()
+      setIsSuccess(true)
+      onSubmit()
+    } catch {
+      // submitError is set in context
     }
   }
 
   return (
     <div className="relative">
-      {/* Success Popup */}
       {isSuccess && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -54,6 +49,12 @@ export default function SummaryForm({ onSubmit, isSubmitting }: SummaryFormProps
                 Please review your application details before submitting. You can go back to previous steps to make
                 changes if needed.
               </p>
+
+              {submitError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{submitError}</AlertDescription>
+                </Alert>
+              )}
 
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="personal">
@@ -210,8 +211,8 @@ export default function SummaryForm({ onSubmit, isSubmitting }: SummaryFormProps
               </Accordion>
 
               <div className="pt-4">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Submitting...

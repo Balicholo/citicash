@@ -29,9 +29,8 @@ const steps = [
   "Summary",
 ]
 
-export default function LoanApplicationForm() {
+function LoanApplicationFormContent() {
   const [currentStep, setCurrentStep] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const nextStep = () => {
@@ -48,11 +47,7 @@ export default function LoanApplicationForm() {
     }
   }
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
-    // In a real application, this would submit the form data to the server
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsSubmitting(false)
+  const handleSubmitSuccess = () => {
     setIsSubmitted(true)
   }
 
@@ -81,42 +76,48 @@ export default function LoanApplicationForm() {
       case 8:
         return <TermsAndConditions />
       case 9:
-        return <SummaryForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        return <SummaryForm onSubmit={handleSubmitSuccess} />
       default:
         return <PersonalDetailsForm />
     }
   }
 
   return (
-    <FormProvider>
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>
-              Step {currentStep + 1} of {steps.length}
-            </span>
-            <span>{steps[currentStep]}</span>
-          </div>
-          <Progress value={((currentStep + 1) / steps.length) * 100} className="h-2" />
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>
+            Step {currentStep + 1} of {steps.length}
+          </span>
+          <span>{steps[currentStep]}</span>
         </div>
-
-        {renderStep()}
-
-        <div className="flex justify-between pt-4">
-          {currentStep > 0 && (
-            <Button type="button" variant="outline" onClick={prevStep}>
-              Previous
-            </Button>
-          )}
-          {currentStep === 0 && <div />}
-
-          {currentStep < steps.length - 1 && (
-            <Button type="button" onClick={nextStep}>
-              Next
-            </Button>
-          )}
-        </div>
+        <Progress value={((currentStep + 1) / steps.length) * 100} className="h-2" />
       </div>
+
+      {renderStep()}
+
+      <div className="flex justify-between pt-4">
+        {currentStep > 0 && (
+          <Button type="button" variant="outline" onClick={prevStep}>
+            Previous
+          </Button>
+        )}
+        {currentStep === 0 && <div />}
+
+        {currentStep < steps.length - 1 && (
+          <Button type="button" onClick={nextStep}>
+            Next
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function LoanApplicationForm() {
+  return (
+    <FormProvider>
+      <LoanApplicationFormContent />
     </FormProvider>
   )
 }

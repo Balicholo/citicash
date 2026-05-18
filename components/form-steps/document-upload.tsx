@@ -43,7 +43,7 @@ function FileUpload({ id, label, accept, onChange, value }: FileUploadProps) {
               Click to upload {label}
               <Input id={id} type="file" accept={accept} onChange={handleFileChange} className="hidden" />
             </label>
-            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, or PNG</p>
+            <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, JPG, or PNG (max 10 MB)</p>
           </div>
         )}
       </div>
@@ -67,7 +67,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="applicantIdDocument"
               label="Copy of ID (Applicant)"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.applicantIdDocument}
               onChange={(file) => updateFormData({ applicantIdDocument: file })}
             />
@@ -75,7 +75,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="guarantorIdDocument"
               label="Copy of ID (Guarantor)"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.guarantorIdDocument}
               onChange={(file) => updateFormData({ guarantorIdDocument: file })}
             />
@@ -83,7 +83,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="proofOfResidence"
               label="Proof of Residence"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.proofOfResidence}
               onChange={(file) => updateFormData({ proofOfResidence: file })}
             />
@@ -91,7 +91,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="companyDocuments"
               label="Company Documents"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.companyDocuments}
               onChange={(file) => updateFormData({ companyDocuments: file })}
             />
@@ -99,7 +99,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="incomeProof"
               label="Sales/Income Proof"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.incomeProof}
               onChange={(file) => updateFormData({ incomeProof: file })}
             />
@@ -107,7 +107,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="businessLicense"
               label="Business License"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.businessLicense}
               onChange={(file) => updateFormData({ businessLicense: file })}
             />
@@ -115,7 +115,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="taxClearance"
               label="Tax Clearance"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.taxClearance}
               onChange={(file) => updateFormData({ taxClearance: file })}
             />
@@ -123,7 +123,7 @@ export default function DocumentUploadForm() {
             <FileUpload
               id="securityDocument"
               label="Security Document"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               value={formData.securityDocument}
               onChange={(file) => updateFormData({ securityDocument: file })}
             />

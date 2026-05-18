@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode } from "react"
-import { sendFormData } from "@/utils/emailService"; // Import the helper function
+import { submitApplication } from "@/utils/submitApplication"
 
 type FormData = {
   // Personal Details
@@ -100,7 +100,6 @@ type FormData = {
 }
 
 const initialFormData: FormData = {
-  // Personal Details
   title: "",
   fullName: "",
   identityNumber: "",
@@ -113,8 +112,6 @@ const initialFormData: FormData = {
   numberOfDependants: "",
   personalObligations: "",
   residentialAddress: "",
-
-  // Business Details
   businessName: "",
   businessAddress: "",
   typeOfBusiness: "",
@@ -128,8 +125,6 @@ const initialFormData: FormData = {
   mainChallenges: "",
   creditFacilities: "",
   businessAssets: "",
-
-  // Next of Kin
   kinTitle: "",
   kinFullName: "",
   kinRelationship: "",
@@ -138,8 +133,6 @@ const initialFormData: FormData = {
   kinEducation: "",
   kinOccupation: "",
   kinResidentialAddress: "",
-
-  // Guarantor
   guarantorTitle: "",
   guarantorFullName: "",
   guarantorRelationship: "",
@@ -149,13 +142,9 @@ const initialFormData: FormData = {
   guarantorOccupation: "",
   guarantorResidentialAddress: "",
   guarantorIdNumber: "",
-
-  // Banking Details
   bankName: "",
   bankBranch: "",
   accountNumber: "",
-
-  // Loan Details
   loanAmount: "",
   loanAmountInWords: "",
   loanPurpose: "",
@@ -163,8 +152,6 @@ const initialFormData: FormData = {
   desiredInstalment: "",
   securityCeded: "",
   securityValue: "",
-
-  // Declarations
   clientName: "",
   clientSignatureDate: "",
   guarantorSignatureDate: "",
@@ -172,8 +159,6 @@ const initialFormData: FormData = {
   representativeIdNumber: "",
   representativeSignatureDate: "",
   managerSignatureDate: "",
-
-  // Terms and Conditions
   agreedToTerms: false,
   executionPlace: "",
   executionDate: "",
@@ -183,8 +168,6 @@ const initialFormData: FormData = {
   preparedByDate: "",
   approvedByName: "",
   approvedByDate: "",
-
-  // Document Upload
   applicantIdDocument: null,
   guarantorIdDocument: null,
   proofOfResidence: null,
@@ -200,12 +183,17 @@ type FormContextType = {
   updateFormData: (data: Partial<FormData>) => void
   resetForm: () => void
   submitForm: () => Promise<void>
+  isSubmitting: boolean
+  submitError: string | null
+  clearSubmitError: () => void
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined)
 
 export function FormProvider({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState<FormData>(initialFormData)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...data }))
@@ -213,19 +201,43 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const resetForm = () => {
     setFormData(initialFormData)
+    setSubmitError(null)
   }
 
-  const submitForm = async () => {
-    try {
-      await sendFormData(formData); // Send the form data via EmailJS
-      alert("Form submitted successfully!");
-      resetForm(); // Reset the form after successful submission
-    } catch (error) {
-      alert("Failed to submit the form. Please try again.");
-    }
-  };
+  const clearSubmitError = () => setSubmitError(null)
 
-  return <FormContext.Provider value={{ formData, updateFormData, resetForm, submitForm }}>{children}</FormContext.Provider>
+  const submitForm = async () => {
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      await submitApplication(formData)
+      resetForm()
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to submit the form. Please try again."
+      setSubmitError(message)
+      throw error
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <FormContext.Provider
+      value={{
+        formData,
+        updateFormData,
+        resetForm,
+        submitForm,
+        isSubmitting,
+        submitError,
+        clearSubmitError,
+      }}
+    >
+      {children}
+    </FormContext.Provider>
+  )
 }
 
 export function useFormContext() {
@@ -235,49 +247,3 @@ export function useFormContext() {
   }
   return context
 }
-import React from "react";
-import { useFormContext as useFormContextFromProvider } from "@/context/form-context";
-
-export default function Form() {
-  const { formData, updateFormData, submitForm } = useFormContextFromProvider();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    updateFormData({ [name]: value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await submitForm(); // Call the submitForm function
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="fullName">Full Name</label>
-        <input
-          type="text"
-          id="fullName"
-          name="fullName"
-          value={formData.fullName}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      {/* Add more fields as needed */}
-      <button type="submit">Submit</button>
-    </form>
-  );
-}
-
