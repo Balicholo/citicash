@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "app/api/submit-application/route.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
+}

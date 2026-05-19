@@ -10,7 +10,13 @@ const nextConfig = {
     unoptimized: true,
   },
   // Keep native Node packages external for API route (Puppeteer, Formidable, Nodemailer)
-  serverExternalPackages: ["puppeteer", "formidable", "nodemailer"],
+  serverExternalPackages: [
+    "puppeteer",
+    "puppeteer-core",
+    "@sparticuz/chromium",
+    "formidable",
+    "nodemailer",
+  ],
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb",
