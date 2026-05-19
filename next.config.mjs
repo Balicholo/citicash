@@ -16,11 +16,14 @@ const nextConfig = {
     "@sparticuz/chromium",
     "formidable",
     "nodemailer",
+    "@vercel/blob",
   ],
   experimental: {
     serverActions: {
-      bodySizeLimit: "50mb",
+      bodySizeLimit: "1gb",
     },
+    // Local multipart uploads — up to ~800 MB total (8 × 100 MB files)
+    middlewareClientMaxBodySize: "1gb",
   },
 }
 

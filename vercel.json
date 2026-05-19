@@ -1,5 +1,9 @@
 {
   "functions": {
+    "app/api/upload-document/route.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
     "app/api/submit-application/route.js": {
       "maxDuration": 60,
       "memory": 1024

@@ -4,19 +4,15 @@ import {
   parseApplicationData,
   validateApplicationData,
   validateUploadedFiles,
+  validateBlobFileMetadata,
 } from "@/lib/form/validateSubmission.js"
-import { cleanupTempFiles } from "@/lib/form/cleanupTempFiles.js"
 import { FILE_FIELD_NAMES } from "@/lib/form/constants.js"
-import { generateApplicationPdf } from "@/lib/pdf/generateApplicationPdf.js"
-import { sendApplicationEmail } from "@/lib/email/sendApplicationEmail.js"
+import { downloadBlobFilesToTemp } from "@/lib/form/downloadBlobFiles.js"
+import { processSubmission } from "@/lib/form/processSubmission.js"
 
-// Puppeteer and file system operations require the Node.js runtime
 export const runtime = "nodejs"
 export const maxDuration = 60
 
-/**
- * Collect uploaded files from the parsed formidable result.
- */
 function collectUploadedFiles(files) {
   const collected = []
 
@@ -38,51 +34,71 @@ function collectUploadedFiles(files) {
   return collected
 }
 
-export async function POST(request) {
-  const tempPaths = []
+/** JSON body: { applicationData, uploadedFiles: [{ fieldName, url, originalFilename, contentType }] } */
+async function handleJsonSubmission(request) {
+  const body = await request.json()
+  const applicationData = body.applicationData
+  const blobFiles = body.uploadedFiles || []
 
-  try {
-    // 1. Parse multipart form data (text fields + file uploads)
-    const { fields, files } = await parseMultipartForm(request)
-    const applicationData = parseApplicationData(fields)
+  if (!applicationData || typeof applicationData !== "object") {
+    throw new Error("Missing application data")
+  }
 
-    // 2. Validate required fields and uploaded files
-    validateApplicationData(applicationData)
-    validateUploadedFiles(files)
+  validateApplicationData(applicationData)
+  validateBlobFileMetadata(blobFiles)
 
-    const uploadedFiles = collectUploadedFiles(files)
-    uploadedFiles.forEach((f) => tempPaths.push(f.filepath))
+  const uploadedFiles = await downloadBlobFilesToTemp(blobFiles)
+  const { applicantName } = await processSubmission(applicationData, uploadedFiles)
 
-    // 3. Generate branded PDF summary
-    const { pdfBuffer, pdfFileName, applicantName } = await generateApplicationPdf(
-      applicationData,
-      uploadedFiles,
-    )
-
-    // 4. Send email with PDF and all uploaded attachments
-    await sendApplicationEmail({
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Application submitted successfully",
       applicantName,
-      pdfBuffer,
-      pdfFileName,
-      uploadedFiles,
-    })
+    },
+    { status: 200 },
+  )
+}
 
-    // 5. Clean up temporary upload files after successful send
-    await cleanupTempFiles(tempPaths)
+/** Multipart body — used for local development without Vercel Blob */
+async function handleMultipartSubmission(request) {
+  const { fields, files } = await parseMultipartForm(request)
+  const applicationData = parseApplicationData(fields)
+
+  validateApplicationData(applicationData)
+  validateUploadedFiles(files)
+
+  const uploadedFiles = collectUploadedFiles(files)
+  const { applicantName } = await processSubmission(applicationData, uploadedFiles)
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Application submitted successfully",
+      applicantName,
+    },
+    { status: 200 },
+  )
+}
+
+export async function POST(request) {
+  try {
+    const contentType = request.headers.get("content-type") || ""
+
+    if (contentType.includes("application/json")) {
+      return await handleJsonSubmission(request)
+    }
+
+    if (contentType.includes("multipart/form-data")) {
+      return await handleMultipartSubmission(request)
+    }
 
     return NextResponse.json(
-      {
-        success: true,
-        message: "Application submitted successfully",
-        applicantName,
-      },
-      { status: 200 },
+      { success: false, message: "Unsupported Content-Type" },
+      { status: 415 },
     )
   } catch (error) {
     console.error("Application submission error:", error)
-
-    // Always attempt cleanup on failure
-    await cleanupTempFiles(tempPaths)
 
     const message =
       error instanceof Error ? error.message : "An unexpected error occurred during submission"
@@ -91,17 +107,12 @@ export async function POST(request) {
       message.includes("Missing") ||
       message.includes("Invalid") ||
       message.includes("must agree") ||
-      message.includes("multipart")
+      message.includes("multipart") ||
+      message.includes("Unsupported")
         ? 400
         : 500
 
-    return NextResponse.json(
-      {
-        success: false,
-        message,
-      },
-      { status },
-    )
+    return NextResponse.json({ success: false, message }, { status })
   }
 }
 

@@ -43,7 +43,9 @@ function FileUpload({ id, label, accept, onChange, value }: FileUploadProps) {
               Click to upload {label}
               <Input id={id} type="file" accept={accept} onChange={handleFileChange} className="hidden" />
             </label>
-            <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, JPG, or PNG (max 10 MB)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PDF, DOCX, JPG, or PNG — max 100 MB per file
+            </p>
           </div>
         )}
       </div>

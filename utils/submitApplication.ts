@@ -1,40 +1,17 @@
-/** File upload field names — must match server FILE_FIELD_NAMES */
-const FILE_FIELDS = [
-  "applicantIdDocument",
-  "guarantorIdDocument",
-  "proofOfResidence",
-  "companyDocuments",
-  "incomeProof",
-  "businessLicense",
-  "taxClearance",
-  "securityDocument",
-] as const
-
-type FileField = (typeof FILE_FIELDS)[number]
+import { parseApiResponse } from "./parseApiResponse"
+import { uploadFilesToBlob } from "./uploadFilesToBlob"
+import { getUploadStrategy } from "./getUploadStrategy"
+import { FILE_FIELDS, validateUploadSizes } from "./uploadLimits"
 
 export type ApplicationFormPayload = Record<string, unknown> & {
-  [K in FileField]?: File | null
-}
-
-/**
- * Build multipart FormData for the submit-application API route.
- * Text fields are sent as JSON; files are appended separately.
- */
-export function buildApplicationFormData(formData: ApplicationFormPayload): FormData {
-  const payload: Record<string, unknown> = { ...formData }
-
-  const multipart = new FormData()
-
-  for (const field of FILE_FIELDS) {
-    const file = formData[field]
-    if (file instanceof File) {
-      multipart.append(field, file, file.name)
-    }
-    delete payload[field]
-  }
-
-  multipart.append("applicationData", JSON.stringify(payload))
-  return multipart
+  applicantIdDocument?: File | null
+  guarantorIdDocument?: File | null
+  proofOfResidence?: File | null
+  companyDocuments?: File | null
+  incomeProof?: File | null
+  businessLicense?: File | null
+  taxClearance?: File | null
+  securityDocument?: File | null
 }
 
 export type SubmitApplicationResult = {
@@ -43,20 +20,109 @@ export type SubmitApplicationResult = {
   applicantName?: string
 }
 
+function hasUploadedFiles(formData: ApplicationFormPayload): boolean {
+  return FILE_FIELDS.some((field) => formData[field] instanceof File)
+}
+
+function stripFileFields(formData: ApplicationFormPayload): Record<string, unknown> {
+  const payload: Record<string, unknown> = { ...formData }
+  for (const field of FILE_FIELDS) {
+    delete payload[field]
+  }
+  return payload
+}
+
+function buildMultipartFormData(formData: ApplicationFormPayload): FormData {
+  const multipart = new FormData()
+  multipart.append("applicationData", JSON.stringify(stripFileFields(formData)))
+
+  for (const field of FILE_FIELDS) {
+    const file = formData[field]
+    if (file instanceof File) {
+      multipart.append(field, file, file.name)
+    }
+  }
+
+  return multipart
+}
+
+async function submitViaBlob(
+  formData: ApplicationFormPayload,
+): Promise<SubmitApplicationResult> {
+  const uploadedFiles = await uploadFilesToBlob(formData)
+
+  const response = await fetch("/api/submit-application", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      applicationData: stripFileFields(formData),
+      uploadedFiles,
+    }),
+  })
+
+  const result = await parseApiResponse(response)
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Failed to submit application")
+  }
+
+  return result
+}
+
+async function submitViaMultipart(
+  formData: ApplicationFormPayload,
+): Promise<SubmitApplicationResult> {
+  // Per-file and total limits enforced in validateUploadSizes()
+  const response = await fetch("/api/submit-application", {
+    method: "POST",
+    body: buildMultipartFormData(formData),
+  })
+
+  const result = await parseApiResponse(response)
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Failed to submit application")
+  }
+
+  return result
+}
+
+async function submitWithFiles(
+  formData: ApplicationFormPayload,
+): Promise<SubmitApplicationResult> {
+  const strategy = await getUploadStrategy()
+
+  if (strategy === "blob") {
+    return submitViaBlob(formData)
+  }
+
+  return submitViaMultipart(formData)
+}
+
 /**
- * Submit the loan application to the Next.js API route.
+ * Submit the loan application.
+ * - Production (Vercel + Blob): files upload to Vercel Blob, then JSON to API
+ * - Local dev (no Blob token): files sent via multipart FormData
  */
 export async function submitApplication(
   formData: ApplicationFormPayload,
 ): Promise<SubmitApplicationResult> {
-  const body = buildApplicationFormData(formData)
+  validateUploadSizes(formData)
+
+  if (hasUploadedFiles(formData)) {
+    return submitWithFiles(formData)
+  }
 
   const response = await fetch("/api/submit-application", {
     method: "POST",
-    body,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      applicationData: stripFileFields(formData),
+      uploadedFiles: [],
+    }),
   })
 
-  const result = (await response.json()) as SubmitApplicationResult
+  const result = await parseApiResponse(response)
 
   if (!response.ok || !result.success) {
     throw new Error(result.message || "Failed to submit application")
