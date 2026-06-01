@@ -1,13 +1,18 @@
 "use client"
 
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2Icon } from "lucide-react"
-import Link from "next/link"
-import { useFormContext } from "@/context/form-context"
 
-export default function SuccessMessage() {
-  const { resetForm } = useFormContext()
+type SuccessMessageProps = {
+  onStartNewApplication: () => void
+}
+
+export default function SuccessMessage({ onStartNewApplication }: SuccessMessageProps) {
+  const referenceRef = useRef(
+    Math.random().toString(36).substring(2, 10).toUpperCase(),
+  )
 
   return (
     <Card className="max-w-md mx-auto">
@@ -26,17 +31,15 @@ export default function SuccessMessage() {
           your application reference number for future correspondence.
         </p>
         <div className="mt-4 p-3 bg-muted rounded-md">
-          <p className="font-mono font-medium">REF: {Math.random().toString(36).substring(2, 10).toUpperCase()}</p>
+          <p className="font-mono font-medium">REF: {referenceRef.current}</p>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
-        <Button asChild className="w-full">
-          <Link href="/" onClick={resetForm}>
-            Submit Another Application
-          </Link>
+        <Button type="button" className="w-full" onClick={onStartNewApplication}>
+          Submit Another Application
         </Button>
-        <Button variant="outline" asChild className="w-full">
-          <Link href="/">Return to Home</Link>
+        <Button type="button" variant="outline" className="w-full" onClick={onStartNewApplication}>
+          Return to Home
         </Button>
       </CardFooter>
     </Card>

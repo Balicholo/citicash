@@ -14,7 +14,7 @@ import DocumentUploadForm from "./form-steps/document-upload"
 import SummaryForm from "./form-steps/summary"
 import TermsAndConditions from "./form-steps/terms-and-conditions"
 import SuccessMessage from "./form-steps/success-message"
-import { FormProvider } from "@/context/form-context"
+import { FormProvider, useFormContext } from "@/context/form-context"
 
 const steps = [
   "Personal Details",
@@ -30,6 +30,7 @@ const steps = [
 ]
 
 function LoanApplicationFormContent() {
+  const { resetForm } = useFormContext()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
@@ -51,8 +52,15 @@ function LoanApplicationFormContent() {
     setIsSubmitted(true)
   }
 
+  const handleStartNewApplication = () => {
+    resetForm()
+    setIsSubmitted(false)
+    setCurrentStep(0)
+    window.scrollTo(0, 0)
+  }
+
   if (isSubmitted) {
-    return <SuccessMessage />
+    return <SuccessMessage onStartNewApplication={handleStartNewApplication} />
   }
 
   const renderStep = () => {
